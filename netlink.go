@@ -14,23 +14,23 @@ import (
 
 // Generic Netlink Client
 
-// NetlinkSender sends a netlink message and returns the sequence number used
+// Sender sends a netlink message and returns the sequence number used
 // in the message and an error if it occurred.
-type NetlinkSender interface {
+type Sender interface {
 	Send(msg syscall.NetlinkMessage) (seq uint32, err error)
 }
 
-// NetlinkReceiver receives data from the netlink socket and uses the provided
+// Receiver receives data from the netlink socket and uses the provided
 // parser to convert the raw bytes to NetlinkMessages.
-type NetlinkReceiver interface {
+type Receiver interface {
 	Receive() ([]syscall.NetlinkMessage, error)
 }
 
 // NetlinkSendReceiver combines the Send and Receive into one interface.
 type NetlinkSendReceiver interface {
 	io.Closer
-	NetlinkSender
-	NetlinkReceiver
+	Sender
+	Receiver
 }
 
 // Client is a generic client for sending and receiving netlink messages.
@@ -124,7 +124,7 @@ func serialize(msg syscall.NetlinkMessage) []byte {
 }
 
 // Receive receives data from the netlink socket and uses the provided
-// parser to convert the raw bytes to NetlinkMessages. See NetlinkReceiver docs.
+// parser to convert the raw bytes to NetlinkMessages. See Receiver docs.
 func (c *Client) Receive() ([]syscall.NetlinkMessage, error) {
 	// XXX (akroh): A possible enhancement is to use the MSG_PEEK flag to
 	// check the message size and increase the buffer size to handle it all.
