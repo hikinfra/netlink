@@ -110,7 +110,9 @@ func (c *Client) send(msg syscall.NetlinkMessage, flags int) (uint32, error) {
 		msg.Header.Pid = c.pid
 	}
 
-	msg.Header.Seq = atomic.AddUint32(&c.seq, 1)
+	if msg.Header.Seq == 0 {
+		msg.Header.Seq = atomic.AddUint32(&c.seq, 1)
+	}
 	to := &syscall.SockaddrNetlink{}
 	return msg.Header.Seq, syscall.Sendto(c.fd, serialize(msg), flags, to)
 }
