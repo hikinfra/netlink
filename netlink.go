@@ -23,7 +23,7 @@ type Sender interface {
 // Receiver receives data from the netlink socket and uses the provided
 // parser to convert the raw bytes to NetlinkMessages.
 type Receiver interface {
-	Receive() ([]syscall.NetlinkMessage, error)
+	Receive(nonBlocking bool) ([]syscall.NetlinkMessage, error)
 }
 
 // NetlinkSendReceiver combines the Send and Receive into one interface.
@@ -127,10 +127,14 @@ func serialize(msg syscall.NetlinkMessage) []byte {
 
 // Receive receives data from the netlink socket and uses the provided
 // parser to convert the raw bytes to NetlinkMessages. See Receiver docs.
-func (c *Client) Receive() ([]syscall.NetlinkMessage, error) {
+func (c *Client) Receive(nonBlocking bool) ([]syscall.NetlinkMessage, error) {
+	var flags int
+	if nonBlocking {
+		flags |= syscall.MSG_DONTWAIT
+	}
 	// XXX (akroh): A possible enhancement is to use the MSG_PEEK flag to
 	// check the message size and increase the buffer size to handle it all.
-	nr, from, err := syscall.Recvfrom(c.fd, c.readBuf, 0)
+	nr, from, err := syscall.Recvfrom(c.fd, c.readBuf, flags)
 	if err != nil {
 		// EAGAIN or EWOULDBLOCK will be returned for non-blocking reads where
 		// the read would normally have blocked.
